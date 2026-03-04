@@ -2,6 +2,7 @@ using Spectre.Console;
 using static SessionLogger.Enums;
 using SessionLogger.Models;
 using SessionLogger.Controllers;
+using System.Diagnostics;
 
 namespace SessionLogger;
 
@@ -82,37 +83,53 @@ internal class UserInterface
         }
     }
 
-    private void ViewSessions()
+    private DateTime? filterSessions()
     {
-
         var filterChoice = AnsiConsole.Prompt(
-                new SelectionPrompt<FilterAction>()
-                .Title("Filter date?")
-                .UseConverter(e => System.Text.RegularExpressions.Regex.Replace(e.ToString(), "([a-z])([A-Z])", "$1 $2"))
-                .AddChoices(Enum.GetValues<FilterAction>()));
+            new SelectionPrompt<FilterAction>()
+            .Title("Filter date?")
+            .UseConverter(e => System.Text.RegularExpressions.Regex.Replace(e.ToString(), "([a-z])([A-Z])", "$1 $2"))
+            .AddChoices(Enum.GetValues<FilterAction>()));
 
 
         switch (filterChoice)
             {
                 case FilterAction.AllTime:
-                    DisplaySessions();
-                    break;
+                    return null;
                 case FilterAction.LastWeek:
-                    DisplaySessions(DateTime.Now.AddDays(-7));
-                    break;
+                    return DateTime.Now.AddDays(-7);
                 case FilterAction.LastMonth:
-                    DisplaySessions(DateTime.Now.AddMonths(-1));
-                    break;
+                    return DateTime.Now.AddMonths(-1);
+                case FilterAction.Custom:                    
+                    var filterUnit = AnsiConsole.Prompt(new SelectionPrompt<FilterUnit>()
+                    .Title("Filter by number of years, months or days?")
+                    .AddChoices(Enum.GetValues<FilterUnit>()));
+
+                    var length= AnsiConsole.Ask<int>($"Enter the number of {filterUnit}:");
+                    
+                    Console.Clear();
+                
+                    switch(filterUnit)
+                    {
+                        case FilterUnit.Days:
+                            return DateTime.Now.AddDays(-length);
+                        case FilterUnit.Months:
+                            return DateTime.Now.AddMonths(-length);
+                        case FilterUnit.Years:
+                            return DateTime.Now.AddYears(-length);
+                        default: return null;
+                    
+                    }
+                    
+                default: return null;
 
             }
-
-        var date = new DateTime(2025, 12, 03);
-        Console.WriteLine(date);
-
-       
+        
     }
-    private void DisplaySessions(DateTime? dateFilter = null)
-    {
+    private void ViewSessions()
+    {   
+        var filterDate = filterSessions();
+        
         var table = new Table();
         table.Border(TableBorder.Rounded);
 
@@ -120,7 +137,7 @@ internal class UserInterface
         table.AddColumn("[yellow]Date[/]");
         table.AddColumn("[yellow]Length[/]");
         
-        var entries = _databaseController.GetAllRecords(dateFilter);
+        var entries = _databaseController.GetAllRecords(filterDate);
 
         foreach (var entry in entries)
         {
@@ -134,7 +151,8 @@ internal class UserInterface
         AnsiConsole.Write(table);
         DisplayMessage("Press Any Key to Continue.");
         Console.ReadKey();
-        
+
+       
     }
 
     private void AddSession()
@@ -177,7 +195,8 @@ internal class UserInterface
 
     private void DeleteSession()
     {
-        var deletionEntries = _databaseController.GetAllRecords();
+        var filterDate = filterSessions();
+        var deletionEntries = _databaseController.GetAllRecords(filterDate);
         var sessionToDelete = AnsiConsole.Prompt(
                 new SelectionPrompt<Session>()
                     .Title("Select a [red]session[/] to delete:")
@@ -206,7 +225,8 @@ internal class UserInterface
 
     private void UpdateSession()
     {
-        var updateEntries = _databaseController.GetAllRecords();
+        var filterDate = filterSessions();
+        var updateEntries = _databaseController.GetAllRecords(filterDate);
         var sessionToUpdate = AnsiConsole.Prompt(
                 new SelectionPrompt<Session>()
                     .Title("Select a [yellow]session[/] to update:")

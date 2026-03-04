@@ -14,7 +14,15 @@ internal class Enums
     {
         AllTime,
         LastWeek,
-        LastMonth
+        LastMonth,
+        Custom
+    }
+
+    internal enum FilterUnit
+    {
+        Days,
+        Months,
+        Years
     }
 
 
