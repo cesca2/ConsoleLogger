@@ -42,18 +42,6 @@ internal class UserInterface
 
         """);
 
-        _databaseController.SQLHandler("""
-            INSERT INTO sessions (
-                type,
-                date, 
-                duration,
-                start,
-                end
-            )
-            VALUES ('Python', '12/02/2026', '2h 30m', '12:30', '14:30');
-
-        """);
-
         while (true)
         {
             Console.Clear();
@@ -165,13 +153,18 @@ internal class UserInterface
             DateTime.TryParse(
                 input,
                 out _
-            ) && DateTime.Parse(input).Date <= DateTime.Now.Date);
+            ) && DateTime.Parse(input).Date <= DateTime.Now.Date, "[red]Please check date format matches (DD/MM/YYYY), and is not in the future[/]");
 
         var date= AnsiConsole.Prompt(dateprompt);
         Console.WriteLine(date);
     
         var startTime = AnsiConsole.Ask<DateTime>("Enter the [green]start time (HH:MM) [/] of the session to add:");
-        var endTime = AnsiConsole.Ask<DateTime>("Enter the [green]end time (HH:MM)[/] of the session to add:");
+        var endprompt = new TextPrompt<DateTime>("Enter the [green]end time (HH:MM)[/] of the session to add:")
+        .Validate(input => 
+                  input > startTime, $"[red]End time must be after specified start time, {startTime.TimeOfDay}[/]");
+        
+        var endTime = AnsiConsole.Prompt(endprompt);
+        
 
         var newSession= new Session(type, DateTime.Parse(date), startTime, endTime);
         newSession.DisplayDetails();
