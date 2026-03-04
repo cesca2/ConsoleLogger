@@ -3,7 +3,8 @@ using static SessionLogger.Enums;
 using SessionLogger.Models;
 using SessionLogger.Controllers;
 using System.Diagnostics;
-
+using Microsoft.VisualBasic;
+using System.ComponentModel;
 namespace SessionLogger;
 
 internal class UserInterface
@@ -158,11 +159,21 @@ internal class UserInterface
     private void AddSession()
     {
         var type= AnsiConsole.Ask<string>("Enter the [cyan]type[/] of session to add:");
-        var date= AnsiConsole.Ask<DateTime>("Enter the [blue]date (XX/XX/XXXX)[/] of the session to add:");
-        var startTime = AnsiConsole.Ask<DateTime>("Enter the [green]start time (XX:XX) [/] of the session to add:");
-        var endTime = AnsiConsole.Ask<DateTime>("Enter the [green]end time (XX:XX)[/] of the session to add:");
+        
+        var dateprompt = new TextPrompt<string>("Enter the [blue]date (DD/MM/YYYY)[/] of the session to add:")
+        .Validate(input =>
+            DateTime.TryParse(
+                input,
+                out _
+            ) && DateTime.Parse(input).Date <= DateTime.Now.Date);
 
-        var newSession= new Session(type, date, startTime, endTime);
+        var date= AnsiConsole.Prompt(dateprompt);
+        Console.WriteLine(date);
+    
+        var startTime = AnsiConsole.Ask<DateTime>("Enter the [green]start time (HH:MM) [/] of the session to add:");
+        var endTime = AnsiConsole.Ask<DateTime>("Enter the [green]end time (HH:MM)[/] of the session to add:");
+
+        var newSession= new Session(type, DateTime.Parse(date), startTime, endTime);
         newSession.DisplayDetails();
 
         if (ConfirmAction("add this session?"))
