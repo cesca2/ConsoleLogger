@@ -48,7 +48,7 @@ internal class UserInterface
                 start,
                 end
             )
-            VALUES ('Python', '12/02/2025', '2h 30m', '12:30', '14:30');
+            VALUES ('Python', '12/02/2026', '2h 30m', '12:30', '14:30');
 
         """);
 
@@ -84,14 +84,43 @@ internal class UserInterface
 
     private void ViewSessions()
     {
+
+        var filterChoice = AnsiConsole.Prompt(
+                new SelectionPrompt<FilterAction>()
+                .Title("Filter date?")
+                .UseConverter(e => System.Text.RegularExpressions.Regex.Replace(e.ToString(), "([a-z])([A-Z])", "$1 $2"))
+                .AddChoices(Enum.GetValues<FilterAction>()));
+
+
+        switch (filterChoice)
+            {
+                case FilterAction.AllTime:
+                    DisplaySessions();
+                    break;
+                case FilterAction.LastWeek:
+                    DisplaySessions(DateTime.Now.AddDays(-7));
+                    break;
+                case FilterAction.LastMonth:
+                    DisplaySessions(DateTime.Now.AddMonths(-1));
+                    break;
+
+            }
+
+        var date = new DateTime(2025, 12, 03);
+        Console.WriteLine(date);
+
+       
+    }
+    private void DisplaySessions(DateTime? dateFilter = null)
+    {
         var table = new Table();
         table.Border(TableBorder.Rounded);
 
         table.AddColumn("[yellow]Type[/]");
         table.AddColumn("[yellow]Date[/]");
         table.AddColumn("[yellow]Length[/]");
-
-        var entries = _databaseController.GetAllRecords();
+        
+        var entries = _databaseController.GetAllRecords(dateFilter);
 
         foreach (var entry in entries)
         {
@@ -105,6 +134,7 @@ internal class UserInterface
         AnsiConsole.Write(table);
         DisplayMessage("Press Any Key to Continue.");
         Console.ReadKey();
+        
     }
 
     private void AddSession()

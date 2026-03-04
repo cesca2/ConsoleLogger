@@ -32,7 +32,7 @@ internal class DatabaseController
         connection.Close(); 
     }
      
-    public List<Session> GetAllRecords()
+    public List<Session> GetAllRecords(DateTime? dateTimeFilter = null)
     {
         var rows = new List<Session>();
         
@@ -50,11 +50,13 @@ internal class DatabaseController
         SqliteDataReader datareader;
         datareader = command.ExecuteReader();
         var i=0;
+        
         while (datareader.Read()){
-            
-            rows.Add(new Session(datareader.GetString(1), datareader.GetDateTime(2), datareader.GetDateTime(3),  datareader.GetDateTime(4)));
-            rows[i].Id = datareader.GetInt16(0);
-            i++;
+            if (!dateTimeFilter.HasValue | (dateTimeFilter.HasValue & datareader.GetDateTime(2) > dateTimeFilter)) {
+                rows.Add(new Session(datareader.GetString(1), datareader.GetDateTime(2), datareader.GetDateTime(3),  datareader.GetDateTime(4)));
+                rows[i].Id = datareader.GetInt16(0);
+                i++;
+            }
             }      
         
         connection.Close();

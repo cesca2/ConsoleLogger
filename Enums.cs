@@ -10,4 +10,12 @@ internal class Enums
         UpdateSession
     }
 
+    internal enum FilterAction
+    {
+        AllTime,
+        LastWeek,
+        LastMonth
+    }
+
+
 }
