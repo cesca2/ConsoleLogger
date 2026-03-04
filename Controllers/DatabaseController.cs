@@ -44,7 +44,7 @@ internal class DatabaseController
         var command = connection.CreateCommand();
         command.CommandText = """
             SELECT id, type, date, start, end FROM sessions
-            ORDER BY date DESC;
+            ORDER BY date ASC, start ASC;
         """;
         command.ExecuteNonQuery();
         SqliteDataReader datareader;
@@ -52,8 +52,8 @@ internal class DatabaseController
         var i=0;
         
         while (datareader.Read()){
-            if (!dateTimeFilter.HasValue | (dateTimeFilter.HasValue & datareader.GetDateTime(2) > dateTimeFilter)) {
-                rows.Add(new Session(datareader.GetString(1), datareader.GetDateTime(2), datareader.GetDateTime(3),  datareader.GetDateTime(4)));
+            if (!dateTimeFilter.HasValue | (dateTimeFilter.HasValue & DateTime.Parse(datareader.GetString(2)) > dateTimeFilter)) {
+                rows.Add(new Session(datareader.GetString(1), DateTime.Parse(datareader.GetString(2)), DateTime.Parse(datareader.GetString(3)),  DateTime.Parse(datareader.GetString(4))));
                 rows[i].Id = datareader.GetInt16(0);
                 i++;
             }

@@ -24,7 +24,11 @@ internal class UserInterface
         }
     internal void MainMenu()
     {
+        DisplayMessage("");
 
+        AnsiConsole.Write(
+            new FigletText("Session logger"));
+        DisplayMessage("");
         DisplayMessage("Welcome to the Session Logger application!", "white");
         DisplayMessage("");
         DisplayMessage("Press Any Key to Continue.");
