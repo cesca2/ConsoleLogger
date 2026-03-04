@@ -1,0 +1,63 @@
+using SessionLogger.Models;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
+
+namespace SessionLogger.Controllers;
+
+internal class DatabaseController
+{
+    public IConfiguration setConfig()
+    {
+        var builder = new ConfigurationBuilder();
+        builder.SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+        IConfiguration config = builder.Build();
+
+        return config;
+    }
+
+    public void SQLHandler(string query)
+    {
+        var config = setConfig();
+        var connection = new SqliteConnection($"Data Source={config["connectionstring:DataSource"]}");
+
+        connection.Open();
+
+        var command = connection.CreateCommand();
+        command.CommandText = query;
+        
+        command.ExecuteNonQuery();
+
+        connection.Close(); 
+    }
+     
+    public List<Session> GetAllRecords()
+    {
+        var rows = new List<Session>();
+        
+        var config = setConfig();
+        var connection = new SqliteConnection($"Data Source={config["connectionstring:DataSource"]}");
+
+        connection.Open();
+
+        var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT id, type, date, start, end FROM sessions
+            ORDER BY date DESC;
+        """;
+        command.ExecuteNonQuery();
+        SqliteDataReader datareader;
+        datareader = command.ExecuteReader();
+        var i=0;
+        while (datareader.Read()){
+            
+            rows.Add(new Session(datareader.GetString(1), datareader.GetDateTime(2), datareader.GetDateTime(3),  datareader.GetDateTime(4)));
+            rows[i].Id = datareader.GetInt16(0);
+            i++;
+            }      
+        
+        connection.Close();
+        return rows;
+    }
+}
