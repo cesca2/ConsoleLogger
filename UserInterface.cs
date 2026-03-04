@@ -115,6 +115,33 @@ internal class UserInterface
             }
         
     }
+
+    private  Session UserInputSession(string message = "add")
+    {
+
+        var type= AnsiConsole.Ask<string>($"Enter the [cyan]type[/] of session to {message}:");
+        
+        var dateprompt = new TextPrompt<string>($"Enter the [blue]date (DD/MM/YYYY)[/] of the session to {message}:")
+        .Validate(input =>
+            DateTime.TryParse(
+                input,
+                out _
+            ) && DateTime.Parse(input).Date <= DateTime.Now.Date, "[red]Please check date format matches (DD/MM/YYYY), and is not in the future[/]");
+
+        var date= AnsiConsole.Prompt(dateprompt);
+    
+        var startTime = AnsiConsole.Ask<DateTime>($"Enter the [green]start time (HH:MM) [/] of the session to {message}:");
+        var endprompt = new TextPrompt<DateTime>($"Enter the [green]end time (HH:MM)[/] of the session to {message}:")
+        .Validate(input => 
+                  input > startTime, $"[red]End time must be after specified start time, {startTime.TimeOfDay}[/]");
+        
+        var endTime = AnsiConsole.Prompt(endprompt);
+        
+        var newSession= new Session(type, DateTime.Parse(date), startTime, endTime);
+
+        return newSession;
+        
+    }
     private void ViewSessions()
     {   
         var filterDate = filterSessions();
@@ -146,27 +173,7 @@ internal class UserInterface
 
     private void AddSession()
     {
-        var type= AnsiConsole.Ask<string>("Enter the [cyan]type[/] of session to add:");
-        
-        var dateprompt = new TextPrompt<string>("Enter the [blue]date (DD/MM/YYYY)[/] of the session to add:")
-        .Validate(input =>
-            DateTime.TryParse(
-                input,
-                out _
-            ) && DateTime.Parse(input).Date <= DateTime.Now.Date, "[red]Please check date format matches (DD/MM/YYYY), and is not in the future[/]");
-
-        var date= AnsiConsole.Prompt(dateprompt);
-        Console.WriteLine(date);
-    
-        var startTime = AnsiConsole.Ask<DateTime>("Enter the [green]start time (HH:MM) [/] of the session to add:");
-        var endprompt = new TextPrompt<DateTime>("Enter the [green]end time (HH:MM)[/] of the session to add:")
-        .Validate(input => 
-                  input > startTime, $"[red]End time must be after specified start time, {startTime.TimeOfDay}[/]");
-        
-        var endTime = AnsiConsole.Prompt(endprompt);
-        
-
-        var newSession= new Session(type, DateTime.Parse(date), startTime, endTime);
+        var newSession= UserInputSession();
         newSession.DisplayDetails();
 
         if (ConfirmAction("add this session?"))
@@ -215,6 +222,7 @@ internal class UserInterface
                 WHERE id={sessionToDelete.Id};
             """
             );
+            DisplayMessage("Session deleted");
         }
         else
         {
@@ -237,12 +245,7 @@ internal class UserInterface
                     .UseConverter(e => $"{e.SessionType}, {e.Date}, {e.Duration} ")
                     .AddChoices(updateEntries));
         
-        var type= AnsiConsole.Ask<string>("Enter the new [cyan]type[/] of session to add:");
-        var date= AnsiConsole.Ask<DateTime>("Enter the new [blue]date (XX/XX/XXXX)[/] of the session to add:");
-        var startTime = AnsiConsole.Ask<DateTime>("Enter the new [green]start time (XX:XX) [/] of the session to add:");
-        var endTime = AnsiConsole.Ask<DateTime>("Enter the new [green]end time (XX:XX)[/] of the session to add:");
-
-        var newSession= new Session(type, date, startTime, endTime);
+        var newSession= UserInputSession("update");
         
         DisplayMessage("", "white");
         DisplayMessage("Replace");
@@ -262,6 +265,8 @@ internal class UserInterface
                 end='{newSession.EndTime}'
                 WHERE id={sessionToUpdate.Id};
                 """);
+
+                DisplayMessage("Session updated");
         }
         else
         {
