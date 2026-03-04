@@ -6,7 +6,7 @@ namespace SessionLogger.Controllers;
 
 internal class DatabaseController
 {
-    public IConfiguration setConfig()
+    private IConfiguration setConfig()
     {
         var builder = new ConfigurationBuilder();
         builder.SetBasePath(Directory.GetCurrentDirectory())

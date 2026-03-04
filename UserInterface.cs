@@ -9,12 +9,12 @@ internal class UserInterface
 {
     private readonly DatabaseController _databaseController = new();
 
-    void DisplayMessage(string message, string color = "yellow")
+    private void DisplayMessage(string message, string color = "yellow")
         {
             AnsiConsole.MarkupLine($"[{color}]{message}[/]");
         }
 
-    bool ConfirmAction(string actionName, string color = "yellow")
+    private bool ConfirmAction(string actionName, string color = "yellow")
         {
             var ConfirmAction = AnsiConsole.Confirm($"Are you sure you want to [{color}]{actionName}[/]?");
 
@@ -24,7 +24,8 @@ internal class UserInterface
     {
 
         DisplayMessage("Welcome to the Session Logger application!", "white");
-
+        DisplayMessage("");
+        DisplayMessage("Press Any Key to Continue.");
         Console.ReadKey();
 
         _databaseController.SQLHandler("""
@@ -81,7 +82,7 @@ internal class UserInterface
         }
     }
 
-    void ViewSessions()
+    private void ViewSessions()
     {
         var table = new Table();
         table.Border(TableBorder.Rounded);
@@ -106,7 +107,7 @@ internal class UserInterface
         Console.ReadKey();
     }
 
-    void AddSession()
+    private void AddSession()
     {
         var type= AnsiConsole.Ask<string>("Enter the [cyan]type[/] of session to add:");
         var date= AnsiConsole.Ask<DateTime>("Enter the [blue]date (XX/XX/XXXX)[/] of the session to add:");
@@ -144,7 +145,7 @@ internal class UserInterface
 
     }
 
-    void DeleteSession()
+    private void DeleteSession()
     {
         var deletionEntries = _databaseController.GetAllRecords();
         var sessionToDelete = AnsiConsole.Prompt(
@@ -173,7 +174,7 @@ internal class UserInterface
 
     }
 
-    void UpdateSession()
+    private void UpdateSession()
     {
         var updateEntries = _databaseController.GetAllRecords();
         var sessionToUpdate = AnsiConsole.Prompt(
